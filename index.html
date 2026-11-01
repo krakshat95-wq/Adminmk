@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.K. SERVICE - Admin Master Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans min-h-screen text-gray-800 pb-12">
+
+    <!-- Header -->
+    <header class="bg-gray-900 text-white p-4 shadow-lg sticky top-0 z-50 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-blue-400">M.K. SERVICE</h1>
+            <p class="text-xs text-gray-400">एडमिन मास्टर कंट्रोल सेंटर</p>
+        </div>
+        <button onclick="renderAll()" class="bg-blue-600 text-xs px-3 py-2 rounded font-bold hover:bg-blue-700 transition">
+            <i class="fa-solid fa-rotate mr-1"></i> डेटा रिफ्रेश
+        </button>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 space-y-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex gap-2 border-b border-gray-300 pb-2 overflow-x-auto">
+            <button onclick="switchTab('bookingsTab')" id="btnBookings" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm whitespace-nowrap">
+                <i class="fa-solid fa-list-check mr-1"></i> लाइव बुकिंग्स & 6-स्टेप ट्रैकिंग
+            </button>
+            <button onclick="switchTab('createBookingTab')" id="btnCreate" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg text-sm whitespace-nowrap">
+                <i class="fa-solid fa-phone-volume mr-1"></i> कॉल बुकिंग बनाएं (+New)
+            </button>
+            <button onclick="switchTab('techsTab')" id="btnTechs" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg text-sm whitespace-nowrap">
+                <i class="fa-solid fa-user-gear mr-1"></i> टेक्नीशियन / SP लिस्ट
+            </button>
+            <button onclick="switchTab('rateCardTab')" id="btnRateCard" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg text-sm whitespace-nowrap">
+                <i class="fa-solid fa-indian-rupee-sign mr-1"></i> मास्टर रेट कार्ड & पार्ट्स
+            </button>
+        </div>
+
+        <!-- TAB 1: BOOKINGS & LIVE TRACKING -->
+        <section id="bookingsTab" class="space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>लाइव बुकिंग एवं रियल-टाइम स्टेटस</h2>
+                    <button onclick="switchTab('createBookingTab')" class="bg-green-600 text-white text-xs px-3 py-2 rounded font-bold hover:bg-green-700">
+                        + कॉल बुकिंग बनाएं
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-gray-100 uppercase text-gray-700 font-bold">
+                            <tr>
+                                <th class="p-3 border-b">ID / ग्राहक</th>
+                                <th class="p-3 border-b">सर्विस एवं पता</th>
+                                <th class="p-3 border-b">असाइन टेक्नीशियन</th>
+                                <th class="p-3 border-b">जॉब स्टेटस (Live)</th>
+                                <th class="p-3 border-b">पेंडिंग नोट / एस्टीमेट</th>
+                                <th class="p-3 border-b">अमाउंट & मोड</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: CREATE MANUAL BOOKING -->
+        <section id="createBookingTab" class="hidden space-y-4">
+            <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow border border-gray-200">
+                <h2 class="font-bold text-lg text-gray-800 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-phone-volume text-green-600"></i> ग्राहक कॉल बुकिंग दर्ज करें
+                </h2>
+                <p class="text-xs text-gray-500 mb-4">ग्राहक के कॉल करने पर यहाँ विवरण भरकर सीधे बुकिंग बनाएं और तुरंत टेक्नीशियन असाइन करें।</p>
+                
+                <form onsubmit="createAdminBooking(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">ग्राहक का नाम</label>
+                        <input type="text" id="adminCustName" placeholder="उदा. सुमित कुमार" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">मोबाइल नंबर</label>
+                        <input type="tel" id="adminCustPhone" placeholder="10 अंकों का नंबर" pattern="[0-9]{10}" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">सर्विस चुनें</label>
+                        <select id="adminService" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- सर्विस का प्रकार चुनें --</option>
+                            <option value="AC Repair/Service">AC रिपेयर एवं सर्विस</option>
+                            <option value="Refrigerator Repair">रेफ्रिजरेटर (फ्रिज) रिपेयर</option>
+                            <option value="Washing Machine Repair">वाशिंग मशीन रिपेयर</option>
+                            <option value="RO Purifier Repair">RO वॉटर प्यूरीफायर</option>
+                            <option value="Geyser Repair">गीजर रिपेयर</option>
+                            <option value="TV Repair">TV / LED रिपेयर</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">पूरा पता (दानापुर / पटना)</label>
+                        <textarea id="adminAddress" required rows="2" placeholder="मकान नं, गली/मोहल्ला, लैंडमार्क..." class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">टेक्नीशियन असाइन करें</label>
+                        <select id="adminAssignTech" class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Unassigned">-- बाद में असाइन करें (Unassigned) --</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg text-sm shadow transition">
+                        <i class="fa-solid fa-check mr-1"></i> बुकिंग सेव करें एवं असाइन करें
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 3: TECHNICIAN / PARTNER LIST & STATUS -->
+        <section id="techsTab" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-md text-gray-800"><i class="fa-solid fa-users text-blue-600 mr-1"></i> पंजीकृत पार्टनर (लाइव ऑनलाइन / ऑफलाइन स्टेटस)</h3>
+                    <button onclick="renderTechs()" class="text-xs bg-gray-100 px-3 py-1.5 rounded font-bold hover:bg-gray-200">
+                        <i class="fa-solid fa-sync mr-1"></i> रिफ्रेश
+                    </button>
+                </div>
+                <div id="techListContainer" class="space-y-2"></div>
+            </div>
+        </section>
+
+        <!-- TAB 4: RATE CARD & PARTS EDITOR -->
+        <section id="rateCardTab" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Add Rate Card Item -->
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200 h-fit">
+                    <h3 class="font-bold text-md text-gray-800 mb-3"><i class="fa-solid fa-plus text-blue-600 mr-1"></i> नया सामान / सर्विस जोड़ें</h3>
+                    <form onsubmit="addRateItem(event)" class="space-y-3">
+                        <input type="text" id="rateCategory" placeholder="कैटेगरी (उदा: AC Parts, Gas)" required class="w-full p-2 border rounded text-xs outline-none">
+                        <input type="text" id="rateItemName" placeholder="सामान / सर्विस का नाम" required class="w-full p-2 border rounded text-xs outline-none">
+                        <input type="number" id="ratePrice" placeholder="फिक्स्ड रेट (₹)" required class="w-full p-2 border rounded text-xs outline-none">
+                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs hover:bg-blue-700">
+                            + रेट कार्ड में जोड़ें
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Master Rate Card Table -->
+                <div class="md:col-span-2 bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="font-bold text-md text-gray-800 mb-3"><i class="fa-solid fa-receipt text-blue-600 mr-1"></i> मास्टर रेट कार्ड (संशोधन / Edit करें)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-gray-100 uppercase text-gray-700 font-bold">
+                                <tr>
+                                    <th class="p-2 border-b">कैटेगरी</th>
+                                    <th class="p-2 border-b">सामान / सर्विस</th>
+                                    <th class="p-2 border-b">फिक्स्ड रेट (₹)</th>
+                                    <th class="p-2 border-b text-center">एक्शन</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rateCardTableBody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function getBookings() { return JSON.parse(localStorage.getItem('mk_bookings') || '[]'); }
+        function saveBookings(d) { localStorage.setItem('mk_bookings', JSON.stringify(d)); }
+        
+        // Ensure Mansu Kumar (SP-1090) is included by default in Tech Database
+        function getTechs() { 
+            const defaultTechs = [
+                {
+                    spId: 'SP-1090',
+                    name: 'मानसू कुमार',
+                    phone: '9386552659',
+                    expert: 'AC & All Home Appliance Specialist',
+                    address: 'दानापुर, पटना',
+                    isOnline: true
+                }
+            ];
+            const stored = JSON.parse(localStorage.getItem('mk_techs') || '[]');
+            
+            // Merge stored techs with default if missing
+            defaultTechs.forEach(dt => {
+                if(!stored.some(t => t.spId === dt.spId || t.phone === dt.phone)) {
+                    stored.push(dt);
+                }
+            });
+            localStorage.setItem('mk_techs', JSON.stringify(stored));
+            return stored;
+        }
+        function saveTechs(d) { localStorage.setItem('mk_techs', JSON.stringify(d)); }
+
+        function getRateCard() { 
+            const defaultRates = [
+                { id: 1, category: 'AC Repair', name: 'AC Service (Jet Wash)', price: 499 },
+                { id: 2, category: 'AC Repair', name: 'R32 / R410 Gas Refill', price: 2200 },
+                { id: 3, category: 'AC Repair', name: 'Capacitor 45 MFD', price: 450 },
+                { id: 4, category: 'Fridge', name: 'Thermostat Replacement', price: 650 },
+                { id: 5, category: 'Washing Machine', name: 'Drain Pipe & Valve', price: 350 }
+            ];
+            return JSON.parse(localStorage.getItem('mk_ratecard') || JSON.stringify(defaultRates)); 
+        }
+        function saveRateCard(d) { localStorage.setItem('mk_ratecard', JSON.stringify(d)); }
+
+        function switchTab(tabId) {
+            document.getElementById('bookingsTab').classList.add('hidden');
+            document.getElementById('createBookingTab').classList.add('hidden');
+            document.getElementById('techsTab').classList.add('hidden');
+            document.getElementById('rateCardTab').classList.add('hidden');
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.getElementById('btnBookings').className = "px-4 py-2 font-bold rounded-lg text-sm whitespace-nowrap " + (tabId==='bookingsTab'?'bg-blue-600 text-white':'bg-gray-200 text-gray-700');
+            document.getElementById('btnCreate').className = "px-4 py-2 font-bold rounded-lg text-sm whitespace-nowrap " + (tabId==='createBookingTab'?'bg-blue-600 text-white':'bg-gray-200 text-gray-700');
+            document.getElementById('btnTechs').className = "px-4 py-2 font-bold rounded-lg text-sm whitespace-nowrap " + (tabId==='techsTab'?'bg-blue-600 text-white':'bg-gray-200 text-gray-700');
+            document.getElementById('btnRateCard').className = "px-4 py-2 font-bold rounded-lg text-sm whitespace-nowrap " + (tabId==='rateCardTab'?'bg-blue-600 text-white':'bg-gray-200 text-gray-700');
+
+            if(tabId === 'createBookingTab') populateTechDropdown();
+        }
+
+        function populateTechDropdown() {
+            const techs = getTechs();
+            const select = document.getElementById('adminAssignTech');
+            select.innerHTML = `<option value="Unassigned">-- बाद में असाइन करें (Unassigned) --</option>` +
+                techs.map(t => `<option value="${t.spId}">${t.name} (${t.spId}) [${t.isOnline ? 'ONLINE' : 'OFFLINE'}] - ${t.phone}</option>`).join('');
+        }
+
+        function createAdminBooking(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminCustName').value.trim();
+            const phone = document.getElementById('adminCustPhone').value.trim();
+            const service = document.getElementById('adminService').value;
+            const address = document.getElementById('adminAddress').value.trim();
+            const spId = document.getElementById('adminAssignTech').value;
+
+            const bookings = getBookings();
+            const techs = getTechs();
+
+            let techName = 'Unassigned';
+            let initialStatus = 'Pending';
+
+            if(spId !== 'Unassigned') {
+                const t = techs.find(x => x.spId === spId);
+                if(t) {
+                    techName = t.name;
+                    initialStatus = 'Assigned';
+                }
+            }
+
+            const newB = {
+                id: 'MK-' + Math.floor(1000 + Math.random() * 9000),
+                name, phone, service, address,
+                status: initialStatus,
+                technician: techName,
+                technicianId: spId === 'Unassigned' ? '' : spId,
+                date: new Date().toLocaleDateString('hi-IN'),
+                amount: 0
+            };
+
+            bookings.unshift(newB);
+            saveBookings(bookings);
+            alert(`कॉल बुकिंग सफलता से दर्ज हुई!\nबुकिंग ID: ${newB.id}\nटेक्नीशियन: ${techName}`);
+            e.target.reset();
+            switchTab('bookingsTab');
+            renderBookings();
+        }
+
+        function renderAll() {
+            renderBookings();
+            renderTechs();
+            renderRateCard();
+        }
+
+        function renderBookings() {
+            const bookings = getBookings();
+            const techs = getTechs();
+            const tbody = document.getElementById('bookingsTableBody');
+
+            if(bookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">कोई बुकिंग नहीं है।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = bookings.map(b => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 border-b">
+                        <div class="font-bold text-blue-600">${b.id}</div>
+                        <div class="font-semibold text-gray-800">${b.name}</div>
+                        <div class="text-gray-500">${b.phone}</div>
+                    </td>
+                    <td class="p-3 border-b">
+                        <div class="font-bold text-gray-700">${b.service}</div>
+                        <div class="text-gray-500 text-[11px]">${b.address}</div>
+                    </td>
+                    <td class="p-3 border-b">
+                        <select onchange="assignTech('${b.id}', this.value)" class="p-1 border rounded bg-white text-xs">
+                            <option value="Unassigned" ${b.technician==='Unassigned'?'selected':''}>असाइन करें</option>
+                            ${techs.map(t => `<option value="${t.spId}" ${b.technicianId===t.spId?'selected':''}>${t.name} (${t.spId})</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="p-3 border-b">
+                        <span class="px-2 py-1 rounded text-[11px] font-bold ${getStatusClass(b.status)}">
+                            ${b.status}
+                        </span>
+                    </td>
+                    <td class="p-3 border-b text-[11px]">
+                        ${b.status === 'Pending Spare Parts' ? `<span class="text-red-600 font-bold">पार्ट्स पेंडिंग: ${b.pendingReason || ''} (${b.expectedDate || ''})</span>` : ''}
+                        ${b.status === 'Estimate Approval' ? `<span class="text-yellow-600 font-bold">एस्टीमेट: ₹${b.estimateAmount || 0}</span>` : ''}
+                        ${!['Pending Spare Parts', 'Estimate Approval'].includes(b.status) ? '-' : ''}
+                    </td>
+                    <td class="p-3 border-b font-bold text-green-700">
+                        ₹${b.amount || 0} (${b.paymentMode || 'N/A'})
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Completed': return 'bg-green-100 text-green-800';
+                case 'On The Way': return 'bg-blue-100 text-blue-800';
+                case 'Inspection': return 'bg-indigo-100 text-indigo-800';
+                case 'Estimate Approval': return 'bg-yellow-100 text-yellow-800';
+                case 'Pending Spare Parts': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-700';
+            }
+        }
+
+        function assignTech(bookingId, spId) {
+            const bookings = getBookings();
+            const techs = getTechs();
+            const idx = bookings.findIndex(b => b.id === bookingId);
+            if(idx !== -1) {
+                if(spId === 'Unassigned') {
+                    bookings[idx].technician = 'Unassigned';
+                    bookings[idx].technicianId = '';
+                    bookings[idx].status = 'Pending';
+                } else {
+                    const t = techs.find(x => x.spId === spId);
+                    bookings[idx].technician = t.name;
+                    bookings[idx].technicianId = t.spId;
+                    bookings[idx].status = 'Assigned';
+                }
+                saveBookings(bookings);
+                renderBookings();
+                alert('टेक्नीशियन असाइन हो गया!');
+            }
+        }
+
+        function renderTechs() {
+            const techs = getTechs();
+            const container = document.getElementById('techListContainer');
+
+            if(techs.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-xs p-3">कोई पंजीकृत टेक्नीशियन नहीं है।</p>`;
+                return;
+            }
+
+            container.innerHTML = techs.map(t => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 border rounded-lg">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-gray-800">${t.name}</h4>
+                            <span class="text-[10px] font-mono bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">${t.spId}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded font-bold ${t.isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                <i class="fa-solid fa-circle text-[8px] mr-1"></i>${t.isOnline ? 'ONLINE' : 'OFFLINE'}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500">फोन: ${t.phone} | एक्सपर्ट: ${t.expert} | पता: ${t.address || 'N/A'}</p>
+                    </div>
+                    <button onclick="deleteTech('${t.spId}')" class="text-red-600 hover:text-red-800 text-xs font-bold p-2">
+                        <i class="fa-solid fa-trash"></i> हटाएं
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteTech(spId) {
+            if(confirm('क्या आप इस टेक्नीशियन का खाता हटाना चाहते हैं?')) {
+                let techs = getTechs();
+                techs = techs.filter(t => t.spId !== spId);
+                saveTechs(techs);
+                renderTechs();
+            }
+        }
+
+        function renderRateCard() {
+            const rates = getRateCard();
+            const tbody = document.getElementById('rateCardTableBody');
+
+            if(rates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400">रेट कार्ड खाली है।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rates.map(r => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-2 border-b font-semibold text-blue-600">${r.category}</td>
+                    <td class="p-2 border-b text-gray-800">${r.name}</td>
+                    <td class="p-2 border-b font-bold text-green-700">₹${r.price}</td>
+                    <td class="p-2 border-b text-center space-x-2">
+                        <button onclick="editRatePrice(${r.id}, ${r.price})" class="text-blue-600 hover:text-blue-800 font-bold text-xs bg-blue-50 px-2 py-1 rounded">
+                            <i class="fa-solid fa-pen-to-square"></i> एडिट रेट
+                        </button>
+                        <button onclick="deleteRateItem(${r.id})" class="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded">
+                            <i class="fa-solid fa-trash"></i> हटाएं
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editRatePrice(id, oldPrice) {
+            const newPrice = prompt("नया रेट (₹) दर्ज करें:", oldPrice);
+            if(newPrice !== null && newPrice !== "") {
+                const parsed = parseInt(newPrice);
+                if(isNaN(parsed) || parsed < 0) {
+                    alert('कृपया सही मूल्य दर्ज करें।');
+                    return;
+                }
+                const rates = getRateCard();
+                const idx = rates.findIndex(r => r.id === id);
+                if(idx !== -1) {
+                    rates[idx].price = parsed;
+                    saveRateCard(rates);
+                    renderRateCard();
+                    alert('रेट सफलता से अपडेट हो गया!');
+                }
+            }
+        }
+
+        function addRateItem(e) {
+            e.preventDefault();
+            const category = document.getElementById('rateCategory').value.trim();
+            const name = document.getElementById('rateItemName').value.trim();
+            const price = parseInt(document.getElementById('ratePrice').value);
+
+            if(!category || !name || isNaN(price)) return;
+
+            const rates = getRateCard();
+            rates.push({ id: Date.now(), category, name, price });
+            saveRateCard(rates);
+            renderRateCard();
+            e.target.reset();
+            alert('नया आइटम रेट कार्ड में जुड़ गया!');
+        }
+
+        function deleteRateItem(id) {
+            if(confirm('क्या आप इस आइटम को रेट कार्ड से हटाना चाहते हैं?')) {
+                let rates = getRateCard();
+                rates = rates.filter(r => r.id !== id);
+                saveRateCard(rates);
+                renderRateCard();
+            }
+        }
+
+        // Init
+        renderAll();
+    </script>
+</body>
+</html>
